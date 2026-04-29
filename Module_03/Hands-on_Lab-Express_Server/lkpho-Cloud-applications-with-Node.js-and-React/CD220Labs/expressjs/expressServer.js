@@ -1,5 +1,5 @@
- // Import the Express.js library
-const express = require('express');
+// Import the Express.js library
+const express = require("express");
 
 // Create an instance of an Express application
 const app = new express();
@@ -19,13 +19,37 @@ app.get("/loginDetails", (req, res) => {
 
 // Define a route to handle login requests and store login details
 app.post("/login/:name", (req, res) => {
-    loginDetails.push({ "name": req.params.name, "login_time": new Date() });
+    loginDetails.push({ name: req.params.name, login_time: new Date() });
     res.send(req.params.name + ", You are logged in!");
 });
 
 // Define a dynamic route to greet users by name
 app.get("/:name", (req, res) => {
     res.send("Hello " + req.params.name);
+});
+
+// Define a dynamic route to greet users by name
+app.get("/fetchMonth/:num", (req, res) => {
+    const monthIndex = parseInt(req.params.num);
+    const months = [
+        "January",
+        "February",
+        "March",
+        "April",
+        "May",
+        "June",
+        "July",
+        "August",
+        "September",
+        "October",
+        "November",
+        "December",
+    ];
+    if (monthIndex > 0 && monthIndex < 13) {
+        res.send("That month is " + months[monthIndex - 1]);
+    } else {
+        res.send("Not a valid month");
+    }
 });
 
 // Start the server and listen on port 3333
