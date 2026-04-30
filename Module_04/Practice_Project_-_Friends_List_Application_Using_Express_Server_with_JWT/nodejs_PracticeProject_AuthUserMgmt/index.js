@@ -1,9 +1,10 @@
-const express = require('express');
-const jwt = require('jsonwebtoken');
-const session = require('express-session')
-const routes = require('./router/friends.js')
+const express = require("express");
+const jwt = require("jsonwebtoken");
+const session = require("express-session");
+const routes = require("./router/friends.js");
 
-let users = []
+// let users = [{ username: "Carlos", password: "Son" }];
+let users = [];
 
 // Check if a user with the given username already exists
 const doesExist = (username) => {
@@ -17,13 +18,13 @@ const doesExist = (username) => {
     } else {
         return false;
     }
-}
+};
 
 // Check if the user with the given username and password exists
 const authenticatedUser = (username, password) => {
     // Filter the users array for any user with the same username and password
     let validusers = users.filter((user) => {
-        return (user.username === username && user.password === password);
+        return user.username === username && user.password === password;
     });
     // Return true if any valid user is found, otherwise false
     if (validusers.length > 0) {
@@ -31,11 +32,17 @@ const authenticatedUser = (username, password) => {
     } else {
         return false;
     }
-}
+};
 
 const app = express();
 
-app.use(session({secret:"fingerpint"},resave=true,saveUninitialized=true));
+app.use(
+    session(
+        { secret: "fingerpint" },
+        (resave = true),
+        (saveUninitialized = true),
+    ),
+);
 
 app.use(express.json());
 
@@ -43,7 +50,7 @@ app.use(express.json());
 app.use("/friends", function auth(req, res, next) {
     // Check if user is logged in and has valid access token
     if (req.session.authorization) {
-        let token = req.session.authorization['accessToken'];
+        let token = req.session.authorization["accessToken"];
 
         // Verify JWT token
         jwt.verify(token, "access", (err, user) => {
@@ -51,7 +58,9 @@ app.use("/friends", function auth(req, res, next) {
                 req.user = user;
                 next(); // Proceed to the next middleware
             } else {
-                return res.status(403).json({ message: "User not authenticated" });
+                return res
+                    .status(403)
+                    .json({ message: "User not authenticated" });
             }
         });
     } else {
@@ -72,17 +81,24 @@ app.post("/login", (req, res) => {
     // Authenticate user
     if (authenticatedUser(username, password)) {
         // Generate JWT access token
-        let accessToken = jwt.sign({
-            data: password
-        }, 'access', { expiresIn: 60 * 60 });
+        let accessToken = jwt.sign(
+            {
+                data: password,
+            },
+            "access",
+            { expiresIn: 60 },
+        );
 
         // Store access token and username in session
         req.session.authorization = {
-            accessToken, username
-        }
+            accessToken,
+            username,
+        };
         return res.status(200).send("User successfully logged in");
     } else {
-        return res.status(208).json({ message: "Invalid Login. Check username and password" });
+        return res
+            .status(208)
+            .json({ message: "Invalid Login. Check username and password" });
     }
 });
 
@@ -96,19 +112,20 @@ app.post("/register", (req, res) => {
         // Check if the user does not already exist
         if (!doesExist(username)) {
             // Add the new user to the users array
-            users.push({"username": username, "password": password});
-            return res.status(200).json({message: "User successfully registered. Now you can login"});
+            users.push({ username: username, password: password });
+            return res.status(200).json({
+                message: "User successfully registered. Now you can login",
+            });
         } else {
-            return res.status(404).json({message: "User already exists!"});
+            return res.status(404).json({ message: "User already exists!" });
         }
     }
     // Return error if username or password is missing
-    return res.status(404).json({message: "Unable to register user."});
+    return res.status(404).json({ message: "Unable to register user." });
 });
 
-
-const PORT =5000;
+const PORT = 5001;
 
 app.use("/friends", routes);
 
-app.listen(PORT,()=>console.log("Server is running"));
+app.listen(PORT, () => console.log("Server is running"));
